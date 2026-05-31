@@ -210,17 +210,13 @@ class OrdersApiController extends Controller
 
         $order->delete();
 
-        return helper::ApiResponse(200 , 'Order deleted successfully');
+        return helper::ApiResponse(200 , 'Order deleted successfully' . $order->number);
     }
 
     public function trashed()
     {
         $orders = Order::onlyTrashed()->get();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Trashed orders retrieved successfully',
-            'data' => $orders
-        ], 200);
+        return helper::ApiResponse(200 , 'Trashed orders retrieved successfully' , $orders);
     }
 }

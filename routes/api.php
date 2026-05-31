@@ -37,8 +37,9 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::resource('users', UsersApiController::class);
-        Route::resource('orders', OrdersApiController::class);
+        
         Route::get('/orders/trashed', [OrdersApiController::class, 'trashed']);
+        Route::resource('orders', OrdersApiController::class);
 
         Route::resource('categories' , CategoriesApiController::class);
 
