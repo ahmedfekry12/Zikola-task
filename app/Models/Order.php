@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Casts\AsJson;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Attributes\Scope;
 
 class Order extends Model
 {
@@ -16,22 +16,48 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'product_id',
-        'quantity',
+        'store_id',
+        'number',
+        'payment_method',
         'status',
-        'options',
+        'payment_status',
+        'delivery',
+        'tax',
+        'discount',
+        'total',
     ];
 
     protected $hidden = [
-        'created_at' , 'updated_at' , 'deleted_at'
+        'updated_at' , 'deleted_at'
     ];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'order_product', 'order_id', 'product_id')
+            ->using(OrderProduct::class)
+            ->withPivot(['price' , 'quantity', 'options']);
+    }
+
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
+    }
 
     protected function casts(): array
     {
         return [
             'user_id' => 'integer',
-            'product_id' => 'integer',
-            'quantity' => 'integer',
+            'store_id' => 'integer',
             'status' => 'string',
             'options' => AsJson::class,
         ];
@@ -42,11 +68,6 @@ class Order extends Model
         return Attribute::make(
             get: fn($value) => "Status: " . strtoupper($value)
         );
-    }
-
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
     }
 
     #[Scope]

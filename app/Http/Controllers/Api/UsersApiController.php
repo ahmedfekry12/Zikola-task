@@ -40,7 +40,7 @@ class UsersApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User created successfully',
-            'data' => $user
+            'data' => $user,
         ] , 201);
     }
 

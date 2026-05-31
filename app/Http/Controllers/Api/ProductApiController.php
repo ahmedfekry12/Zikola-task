@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class ProductApiController extends Controller
 {
@@ -14,7 +18,8 @@ class ProductApiController extends Controller
      */
     public function index()
     {
-        $products = Product::expensive()->paginate();
+        // $products = Product::expensive()->paginate();
+        $products = Product::paginate();
         
         return response()->json([
             'data' => $products,
@@ -35,15 +40,24 @@ class ProductApiController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        $data = $request->validated();
+        $store = Auth::user()->store;
+        $data = $request->safe()->except(['image' , 'slug']);
+
+        $data['store_id'] = $store->id;
         
         $data['options'] = $data['options'] ?? [];
+
+        $data['slug'] = Str::slug($request->name);
+
+        if ($request->hasFile('image')) {
+            $data['image'] = helper::uploadImage($request->image , 'uploads/products');
+        }
 
         $product = Product::create($data);
 
         return response()->json([
             'data' => $product,
-            'message' => 'Product created successfully'
+            'message' => 'Product created successfully',
         ], 201);
     }
 
@@ -68,22 +82,34 @@ class ProductApiController extends Controller
      */
     public function update(ProductRequest $request, string $id)
     {
-        $data = $request->validated();
+        $store = Auth::user()->store;
+        $product = Product::findOrFail($id);
+
+        $data = $request->safe()->except(['image' , 'slug']);
+
+        if (!$store) {
+            return helper::ApiResponse(404 , "You Should Be A Store Owner To Update Product");
+        }
+
+        $data['store_id'] = $store->id;
 
         $data['options'] = $data['options'] ?? [];
+        
+        $data['slug'] = Str::slug($request->name);
 
-        $product = Product::findOrFail($id);
+        if ($request->hasFile('image')) {
+            if (File::exists(public_path($product->image))) {
+                File::delete(public_path($product->image));
+            }
+
+            $data['image'] = helper::uploadImage($request->image , 'uploads/products');
+        }
 
         if ($product) {
             $product->update($data);
-            return response()->json([
-                'data' => $product,
-                'message' => 'Product updated successfully'
-            ], 200);
+            return helper::ApiResponse(200 , 'Product updated successfully' , $product);
         } else {
-            return response()->json([
-                'message' => 'Product not found'
-            ], 404);
+            return helper::ApiResponse(404 , 'Product not found');
         }
     }
 
@@ -94,24 +120,17 @@ class ProductApiController extends Controller
     {
         $product = Product::findOrFail($id);
         if (!$product) {
-            return response()->json([
-                'message' => 'Product not found'
-            ], 404);
+            return helper::ApiResponse(404 , 'Product not found');
         }
 
         $product->delete();
-        return response()->json([
-            'message' => 'Product deleted successfully'
-        ], 204);
+        return helper::ApiResponse(200 , 'Product deleted successfully');
     }
 
     public function trashed()
     {
         $products = Product::onlyTrashed()->get();
 
-        return response()->json([
-            'data' => $products,
-            'message' => 'Trashed products retrieved successfully'
-        ], 200);
+        return helper::ApiResponse(200 , 'Trashed products retrieved successfully', $products);
     }
 }

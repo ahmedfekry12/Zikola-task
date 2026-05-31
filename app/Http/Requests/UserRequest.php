@@ -26,6 +26,7 @@ class UserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:3',
+            'phone_number' => 'nullable|string|max:20',
             'is_active' => 'sometimes|boolean',
         ];
     }

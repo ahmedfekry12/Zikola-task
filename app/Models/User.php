@@ -14,13 +14,14 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password' , 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'phone_number', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasApiTokens;
 
     /**
      * Get the attributes that should be cast.
@@ -36,9 +37,29 @@ class User extends Authenticatable
         ];
     }
 
+    public function store()
+    {
+        return $this->hasOne(Store::class);
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
+    }
+
+    public function sentNotifications()
+    {
+        return $this->morphMany(Notification::class, 'sender');
+    }
+
+    public function receivedNotifications()
+    {
+        return $this->morphMany(Notification::class, 'receiver');
     }
 
     protected function name(): Attribute
