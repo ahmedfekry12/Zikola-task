@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class ProductApiController extends Controller
+class ProductsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,10 +22,7 @@ class ProductApiController extends Controller
         // $products = Product::expensive()->paginate();
         $products = Product::paginate();
         
-        return response()->json([
-            'data' => $products,
-            'message' => 'Products retrieved successfully'
-        ] , 200);
+        return helper::ApiResponse(200, 'Products retrieved successfully', ProductResource::collection($products));
     }
 
     /**
@@ -55,10 +53,7 @@ class ProductApiController extends Controller
 
         $product = Product::create($data);
 
-        return response()->json([
-            'data' => $product,
-            'message' => 'Product created successfully',
-        ], 201);
+        return helper::ApiResponse(200, 'Product created successfully', new ProductResource($product));
     }
 
     /**
@@ -66,7 +61,9 @@ class ProductApiController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $product = Product::findOrFail($id);
+
+        return helper::ApiResponse(200, 'Product retrieved successfully', new ProductResource($product));
     }
 
     /**
@@ -107,7 +104,7 @@ class ProductApiController extends Controller
 
         if ($product) {
             $product->update($data);
-            return helper::ApiResponse(200 , 'Product updated successfully' , $product);
+            return helper::ApiResponse(200 , 'Product updated successfully' , new ProductResource($product));
         } else {
             return helper::ApiResponse(404 , 'Product not found');
         }
@@ -131,6 +128,6 @@ class ProductApiController extends Controller
     {
         $products = Product::onlyTrashed()->get();
 
-        return helper::ApiResponse(200 , 'Trashed products retrieved successfully', $products);
+        return helper::ApiResponse(200 , 'Trashed products retrieved successfully', ProductResource::collection($products));
     }
 }

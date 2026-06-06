@@ -21,7 +21,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasApiTokens;
+    use HasFactory, HasApiTokens , Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -45,21 +45,6 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
-    }
-
-    public function notifications()
-    {
-        return $this->morphMany(Notification::class, 'notifiable');
-    }
-
-    public function sentNotifications()
-    {
-        return $this->morphMany(Notification::class, 'sender');
-    }
-
-    public function receivedNotifications()
-    {
-        return $this->morphMany(Notification::class, 'receiver');
     }
 
     protected function name(): Attribute

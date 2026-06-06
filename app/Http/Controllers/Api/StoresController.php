@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRequest;
+use App\Http\Resources\StoreResource;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class StoresApiController extends Controller
+class StoresController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,11 +22,7 @@ class StoresApiController extends Controller
         // $stores = Store::active()->paginate();
         $stores = Store::paginate();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Stores retrieved successfully',
-            'data' => $stores
-        ]);
+        return helper::ApiResponse(200, 'Stores retrieved successfully', StoreResource::collection($stores));
     }
 
     /**
@@ -50,11 +47,7 @@ class StoresApiController extends Controller
 
         $store = Store::create($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Store created successfully',
-            'data' => $store
-        ], 201);
+        return helper::ApiResponse(200, 'Store created successfully', new StoreResource($store));
     }
 
     /**
@@ -64,11 +57,7 @@ class StoresApiController extends Controller
     {
         $store = Store::findOrFail($id);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Store retrieved successfully',
-            'data' => $store
-        ]);
+        return helper::ApiResponse(200, 'Store retrieved successfully', new StoreResource($store));
     }
 
     /**
@@ -109,11 +98,7 @@ class StoresApiController extends Controller
 
         $store->update($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Store updated successfully',
-            'data' => $store
-        ]);
+        return helper::ApiResponse(200, 'Store updated successfully', new StoreResource($store));
     }
 
     /**
@@ -124,17 +109,13 @@ class StoresApiController extends Controller
         $store = Store::findOrFail($id);
 
         if (!$store) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Store not found'
-            ], 404);
+            return helper::ApiResponse(404, 'Store not found', null);
         }
         
         $store->delete();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Store deleted successfully'
-        ]);
+        return helper::ApiResponse(200, 'Store deleted successfully', null);
+        
     }
 }
+

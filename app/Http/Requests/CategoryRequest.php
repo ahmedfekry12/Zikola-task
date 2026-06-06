@@ -28,4 +28,17 @@ class CategoryRequest extends FormRequest
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Name is required',
+            'name.string' => 'Name must be a string',
+            'name.max' => 'Name must not exceed 255 characters',
+            'parent_id.exists' => 'Parent category must exist',
+            'image.image' => 'The file must be an image',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif, svg',
+            'image.max' => 'The image must not be greater than 2048 kilobytes',
+        ];
+    }
 }

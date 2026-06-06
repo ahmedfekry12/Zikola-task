@@ -1,20 +1,14 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CategoriesApiController;
-use App\Http\Controllers\Api\NotificationsApiController;
-use App\Http\Controllers\Api\OrdersApiController;
-use App\Http\Controllers\Api\ProductApiController;
-use App\Http\Controllers\Api\StoresApiController;
-use App\Http\Controllers\Api\UsersApiController;
+use App\Http\Controllers\Api\CategoriesController;
+use App\Http\Controllers\Api\NotificationsController;
+use App\Http\Controllers\Api\OrdersController;
+use App\Http\Controllers\Api\ProductsController;
+use App\Http\Controllers\Api\StoresController;
+use App\Http\Controllers\Api\UsersController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-
-
-
-
-
 
 
 
@@ -28,7 +22,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function(){
-        Route::controller(ProductApiController::class)
+        Route::controller(ProductsController::class)
         ->group(function () {
             Route::get('/products', 'index');
             Route::post('/products', 'store');
@@ -36,15 +30,17 @@ Route::prefix('v1')->group(function () {
             Route::delete('/products/{id}', 'destroy');
         });
 
-        Route::resource('users', UsersApiController::class);
+        Route::resource('users', UsersController::class);
         
-        Route::get('/orders/trashed', [OrdersApiController::class, 'trashed']);
-        Route::resource('orders', OrdersApiController::class);
+        Route::get('/orders/trashed', [OrdersController::class, 'trashed']);
+        Route::resource('orders', OrdersController::class);
 
-        Route::resource('categories' , CategoriesApiController::class);
+        Route::resource('categories' , CategoriesController::class);
 
-        Route::resource('stores' , StoresApiController::class);
+        Route::resource('stores' , StoresController::class);
 
-        Route::resource('notifications' , NotificationsApiController::class);
+        Route::get('notifications' , [NotificationsController::class, 'unReadNotifications']);
+        Route::patch('notifications/mark-all-as-read' , [NotificationsController::class, 'markAllAsRead']);
+        Route::patch('notifications/{id}' , [NotificationsController::class, 'markAsRead']);
     });
 });

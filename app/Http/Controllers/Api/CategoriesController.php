@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class CategoriesApiController extends Controller
+class CategoriesController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,11 +19,7 @@ class CategoriesApiController extends Controller
     {
         $categories = Category::paginate();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Categories retrieved successfully',
-            'data' => $categories
-        ]);
+        return helper::ApiResponse(200, 'Categories retrieved successfully', $categories);
     }
 
     /**
@@ -49,11 +45,7 @@ class CategoriesApiController extends Controller
 
         $category = Category::create($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Category created successfully',
-            'data' => $category
-        ], 201);
+        return helper::ApiResponse(201, 'Category created successfully', $category);
     }
 
     /**
@@ -63,11 +55,7 @@ class CategoriesApiController extends Controller
     {
         $category = Category::findOrFail($id);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Category retrieved successfully',
-            'data' => $category
-        ]);
+        return helper::ApiResponse(200, 'Category retrieved successfully', $category);
     }
 
     /**
@@ -98,11 +86,7 @@ class CategoriesApiController extends Controller
 
         $category->update($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Category updated successfully',
-            'data' => $category
-        ]);
+        return helper::ApiResponse(200, 'Category updated successfully', $category);
     }
 
     /**
@@ -113,9 +97,6 @@ class CategoriesApiController extends Controller
         $category = Category::findOrFail($id);
         $category->delete();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Category deleted successfully'
-        ]);
+        return helper::ApiResponse(200, 'Category deleted successfully', $category);
     }
 }

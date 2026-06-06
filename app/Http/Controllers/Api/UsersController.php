@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class UsersApiController extends Controller
+class UsersController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,10 +17,7 @@ class UsersApiController extends Controller
     {
         $users = User::paginate();
         
-        return response()->json([
-            'success' => true,
-            'data' => $users
-        ] , 200);
+        return helper::ApiResponse(200, 'Users retrieved successfully', $users);
     }
 
     /**
@@ -37,11 +35,7 @@ class UsersApiController extends Controller
     {
         $user = User::create($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'User created successfully',
-            'data' => $user,
-        ] , 201);
+        return helper::ApiResponse(201, 'User created successfully', $user);
     }
 
     /**
@@ -49,7 +43,9 @@ class UsersApiController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        return helper::ApiResponse(200, 'User retrieved successfully', $user);
     }
 
     /**
@@ -68,11 +64,7 @@ class UsersApiController extends Controller
         $user = User::findOrFail($id);
         $user->update($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'User updated successfully',
-            'data' => $user
-        ], 200);
+        return helper::ApiResponse(200, 'User updated successfully', $user);
     }
 
     /**
@@ -83,9 +75,6 @@ class UsersApiController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'User deleted successfully'
-        ], 200);
+        return helper::ApiResponse(200, 'User deleted successfully', null);
     }
 }

@@ -35,4 +35,16 @@ class ProductRequest extends FormRequest
             'status' => 'required|in:active,draft,archived',
         ];
     }
+
+    public function messages()
+    {
+        return [
+            'category_id.exists' => 'The selected category does not exist.',
+            'compare_price.gt' => 'The compare price must be greater than the price.',
+            'quantity.min' => 'The quantity must be at least 1.',
+            'price.min' => 'The price must be at least 0.',
+            'compare_price.min' => 'The compare price must be at least 0.',
+            'rate.between' => 'The rate must be between 0 and 5.',
+        ];
+    }
 }

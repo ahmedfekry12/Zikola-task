@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Store extends Model
 {
-    use HasFactory;
+    use HasFactory , Notifiable;
 
     protected $fillable = [
         'user_id',
@@ -22,16 +23,6 @@ class Store extends Model
         'cover_image',
         'status'
     ];
-
-    public function sentNotifications()
-    {
-        return $this->morphMany(Notification::class, 'sender');
-    }
-
-    public function receivedNotifications()
-    {
-        return $this->morphMany(Notification::class, 'receiver');
-    }
 
     public function user()
     {
