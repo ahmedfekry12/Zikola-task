@@ -21,7 +21,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:sanctum')->group(function(){
+    Route::middleware('auth:api')->group(function(){
         Route::controller(ProductsController::class)
         ->group(function () {
             Route::get('/products', 'index');
@@ -42,5 +42,7 @@ Route::prefix('v1')->group(function () {
         Route::get('notifications' , [NotificationsController::class, 'unReadNotifications']);
         Route::patch('notifications/mark-all-as-read' , [NotificationsController::class, 'markAllAsRead']);
         Route::patch('notifications/{id}' , [NotificationsController::class, 'markAsRead']);
+
+        Route::get('/me', [AuthController::class, 'me']);
     });
 });

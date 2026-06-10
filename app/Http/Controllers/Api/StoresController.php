@@ -19,8 +19,12 @@ class StoresController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+
+        $stores = $user->stores()->paginate();
+        
         // $stores = Store::active()->paginate();
-        $stores = Store::paginate();
+        // $stores = Store::paginate();
 
         return helper::ApiResponse(200, 'Stores retrieved successfully', StoreResource::collection($stores));
     }
@@ -55,7 +59,12 @@ class StoresController extends Controller
      */
     public function show(string $id)
     {
-        $store = Store::findOrFail($id);
+        $user = Auth::user();
+        $store = $user->stores()->findOrFail($id);
+
+        if (!$store) {
+            return helper::ApiResponse(404, 'Store not found');
+        }
 
         return helper::ApiResponse(200, 'Store retrieved successfully', new StoreResource($store));
     }
@@ -73,8 +82,12 @@ class StoresController extends Controller
      */
     public function update(StoreRequest $request, string $id)
     {
-        $user = Auth::id();
-        $store = Store::findOrFail($id);
+        $user = Auth::user();
+        $store = $user->stores()->findOrFail($id);
+
+        if (!$store) {
+            return helper::ApiResponse(404, 'Store not found');
+        }
 
         $data = $request->safe()->except(['slug' , 'logo_image' , 'cover_image']);
         $data['user_id'] = $user;
@@ -106,10 +119,11 @@ class StoresController extends Controller
      */
     public function destroy(string $id)
     {
-        $store = Store::findOrFail($id);
+        $user = Auth::user();
+        $store = $user->stores()->findOrFail($id);
 
         if (!$store) {
-            return helper::ApiResponse(404, 'Store not found', null);
+            return helper::ApiResponse(404, 'Store not found');
         }
         
         $store->delete();

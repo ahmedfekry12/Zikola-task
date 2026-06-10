@@ -48,11 +48,6 @@ class Order extends Model
             ->withPivot(['price' , 'quantity', 'options']);
     }
 
-    public function notifications()
-    {
-        return $this->morphMany(Notification::class, 'notifiable');
-    }
-
     protected function casts(): array
     {
         return [

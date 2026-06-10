@@ -71,9 +71,9 @@ class OrderService
 
     public function updateOrder($request, $id)
     {
-        $userId = Auth::id();
+        $user = Auth::user();
 
-        if (!$userId) {
+        if (!$user) {
             return helper::ApiResponse(404, "You Should Login First");
         }
 
@@ -81,7 +81,7 @@ class OrderService
 
         $data = $request->validated();
 
-        $data['user_id'] = $userId;
+        $data['user_id'] = $user->id;
         $data['store_id'] = $order->store_id;
 
         unset($data['products']);

@@ -19,6 +19,10 @@ class CategoriesController extends Controller
     {
         $categories = Category::paginate();
 
+        if($categories->isEmpty()){
+            return helper::ApiResponse(200, 'No categories found', $categories);
+        }
+
         return helper::ApiResponse(200, 'Categories retrieved successfully', $categories);
     }
 
@@ -55,6 +59,10 @@ class CategoriesController extends Controller
     {
         $category = Category::findOrFail($id);
 
+        if(!$category){
+            return helper::ApiResponse(404, 'Category not found');
+        }
+
         return helper::ApiResponse(200, 'Category retrieved successfully', $category);
     }
 
@@ -72,6 +80,11 @@ class CategoriesController extends Controller
     public function update(CategoryRequest $request, string $id)
     {
         $category = Category::findOrFail($id);
+
+        if(!$category){
+            return helper::ApiResponse(404, 'Category not found');
+        }
+
         $data = $request->safe()->except(['image' , 'slug']);
 
         $data['slug'] = Str::slug($request->name);
@@ -95,6 +108,11 @@ class CategoriesController extends Controller
     public function destroy(string $id)
     {
         $category = Category::findOrFail($id);
+
+        if(!$category){
+            return helper::ApiResponse(404, 'Category not found');
+        }
+
         $category->delete();
 
         return helper::ApiResponse(200, 'Category deleted successfully', $category);

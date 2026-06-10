@@ -19,6 +19,20 @@ class ProductsController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+
+        // if(!$user->stores->whereHas('products')->exists()) {
+        //     return helper::ApiResponse(403, 'No products found for this user');
+        // }
+
+        $hasProducts = Product::whereHas('store', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->exists();
+
+        if (!$hasProducts) {
+            return helper::ApiResponse(403, 'No products found');
+        }
+
         // $products = Product::expensive()->paginate();
         $products = Product::paginate();
         
@@ -38,7 +52,13 @@ class ProductsController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        $store = Auth::user()->store;
+        $user = Auth::user();
+        $store = $user->stores->first();
+
+        if (!$store) {
+            return helper::ApiResponse(404 , "You Should Be A Store Owner To Create Product");
+        }
+        
         $data = $request->safe()->except(['image' , 'slug']);
 
         $data['store_id'] = $store->id;
@@ -79,14 +99,16 @@ class ProductsController extends Controller
      */
     public function update(ProductRequest $request, string $id)
     {
-        $store = Auth::user()->store;
-        $product = Product::findOrFail($id);
-
-        $data = $request->safe()->except(['image' , 'slug']);
+        $user = Auth::user();
+        $store = $user->stores->first();
 
         if (!$store) {
             return helper::ApiResponse(404 , "You Should Be A Store Owner To Update Product");
         }
+
+        $product = Product::findOrFail($id);
+
+        $data = $request->safe()->except(['image' , 'slug']);
 
         $data['store_id'] = $store->id;
 
@@ -115,7 +137,14 @@ class ProductsController extends Controller
      */
     public function destroy(string $id)
     {
-        $product = Product::findOrFail($id);
+        $user = Auth::user();
+        $store = $user->stores->first();
+
+        if (!$store) {
+            return helper::ApiResponse(404 , "You Should Be A Store Owner To Delete Product");
+        }
+
+        $product = $store->products()->findOrFail($id);
         if (!$product) {
             return helper::ApiResponse(404 , 'Product not found');
         }

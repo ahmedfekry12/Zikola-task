@@ -25,10 +25,20 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        $orders = Order::with('user:id,name', 'products:id,name,price')
+        $user = Auth::user();
+
+        if(!$user) {
+            return helper::ApiResponse(403, 'Unauthorized');
+        }
+
+        $orders = $user->orders()->with('user:id,name', 'products:id,name,price')
             // ->pending()->withTrashed()
             ->select('id', 'number', 'status', 'user_id', 'delivery', 'tax', 'discount', 'total')
             ->paginate();
+
+        if ($orders->isEmpty()) {
+            return helper::ApiResponse(404, 'No orders found');
+        }
 
         return helper::ApiResponse(200, 'Orders retrieved successfully', OrderResource::collection($orders));
     }
@@ -56,7 +66,9 @@ class OrdersController extends Controller
      */
     public function show(string $id)
     {
-        $order = Order::with('user:id,name', 'products:id,name,price')
+        $user = Auth::user();
+        
+        $order = $user->orders()->with('user:id,name', 'products:id,name,price')
             ->select('id', 'number', 'status', 'delivery', 'tax', 'discount', 'total')
             ->findOrFail($id);
 
@@ -86,7 +98,8 @@ class OrdersController extends Controller
      */
     public function destroy(string $id)
     {
-        $order = Order::findOrFail($id);
+        $user = Auth::user();
+        $order = $user->orders()->findOrFail($id);
 
         if (!$order) {
             return helper::ApiResponse(404, 'Order not found');
@@ -99,7 +112,12 @@ class OrdersController extends Controller
 
     public function trashed()
     {
-        $orders = Order::onlyTrashed()->get();
+        $user = Auth::user();
+        $orders = $user->orders()->onlyTrashed()->get();
+
+        if ($orders->isEmpty()) {
+            return helper::ApiResponse(404, 'No trashed orders found');
+        }
 
         return helper::ApiResponse(200, 'Trashed orders retrieved successfully', OrderResource::collection($orders));
     }
