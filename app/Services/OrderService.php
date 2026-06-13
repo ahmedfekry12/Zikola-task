@@ -17,54 +17,22 @@ class OrderService
         $user = Auth::user();
 
         if (!$user) {
-            return helper::ApiResponse(404, "You Should Login First");
+            return apiResponse(404, "You Should Login First");
         }
 
-        $date = $request->validated();
-        $date['user_id'] = $user->id;
+        $data = $this->prepareOrderData($request, $user);
 
-        $store = Product::findOrFail($request->products[0]['product_id'])->store;
-        $date['store_id'] = $store->id;
+        [$products, $subtotal] = $this->prepareProducts($request->products);
 
-        $products = [];
-        $subtotal = 0;
+        $total = $this->calculateTotal($subtotal, $data['delivery'], $data['tax'], $data['discount']);
 
-        foreach ($request->products as $product) {
-            $productModel = Product::findOrFail($product['product_id']);
+        $data['total'] = $total;
 
-            $price = (float) $productModel->price;
-            $quantity = (int) $product['quantity'];
+        $order = $this->storeOrder($data);
 
-            $subtotal += $price * $quantity;
+        $this->attachProducts($order , $products);
 
-            $products[$product['product_id']] = [
-                'price' => $price,
-                'quantity' => $quantity,
-                'options' => $product['options'] ?? null,
-            ];
-        }
-
-        $delivery = $date['delivery'] ?? 0;
-        $tax = $date['tax'] ?? 0;
-        $discount = $date['discount'] ?? 0;
-
-        $total = $subtotal + $delivery + $tax - $discount;
-
-        $date['total'] = $total;
-
-        $order = Order::create($date);
-
-        $order->products()->attach($products);
-
-        $storeOwner = User::findOrFail($store->user_id);
-
-        $storeOwner->notify(
-            new NewOrderNotification($order, "A new order #{$order->number} has been placed. Please check the order details.")
-        );
-
-        $user->notify(
-            new NewOrderNotification($order, "Your order #{$order->number} has been sent to the restaurant.")
-        );
+        $this->createNotification($order, $data['store']->user, $user);
 
         return $order;
     }
@@ -74,7 +42,7 @@ class OrderService
         $user = Auth::user();
 
         if (!$user) {
-            return helper::ApiResponse(404, "You Should Login First");
+            return apiResponse(404, "You Should Login First");
         }
 
         $order = Order::findOrFail($id);
@@ -86,10 +54,38 @@ class OrderService
 
         unset($data['products']);
 
+        [$products, $subtotal] = $this->prepareProducts($request->products);
+
+        $total = $this->calculateTotal($subtotal, $data['delivery'], $data['tax'], $data['discount']);
+
+        $data['total'] = $total;
+
+        $order = $this->update($data , $id);
+
+        $this->syncProducts($order , $products);
+
+        return $order;
+    }
+
+    function prepareOrderData($request , $user)
+    {
+        $data = $request->validated();
+
+        $data['user_id'] = $user->id;
+
+        $store = Product::findOrFail($request->products[0]['product_id'])->store;
+        $data['store_id'] = $store->id;
+        $data['store'] = $store;
+
+        return $data;
+    }
+
+    function prepareProducts(array $requestProducts)
+    {
         $products = [];
         $subtotal = 0;
 
-        foreach ($request->products as $product) {
+        foreach ($requestProducts as $product) {
             $productModel = Product::findOrFail($product['product_id']);
 
             $price = (float) $productModel->price;
@@ -103,19 +99,45 @@ class OrderService
                 'options' => $product['options'] ?? null,
             ];
         }
+        return [$products, $subtotal];
+    }
 
-        $delivery = $data['delivery'] ?? 0;
-        $tax = $data['tax'] ?? 0;
-        $discount = $data['discount'] ?? 0;
+    function calculateTotal($subtotal, $delivery, $tax, $discount)
+    {
+        return $subtotal + $delivery + $tax - $discount;
+    }
 
-        $total = $subtotal + $delivery + $tax - $discount;
+    function storeOrder($data)
+    {
+        return Order::create($data);
+    }
 
-        $data['total'] = $total;
+    function attachProducts($order , $products)
+    {
+        $order->products()->attach($products);
+    }
 
+    function createNotification($order, $storeOwner, $user)
+    {
+        $storeOwner->notify(
+            new NewOrderNotification($order, "A new order #{$order->number} has been placed. Please check the order details.")
+        );
+
+        $user->notify(
+            new NewOrderNotification($order, "Your order #{$order->number} has been sent to the restaurant.")
+        );
+    }
+
+    function update($data, $id)
+    {
+        $order = Order::findOrFail($id);
         $order->update($data);
 
-        $order->products()->sync($products);
-
         return $order;
+    }
+
+    function syncProducts($order , $products)
+    {
+        return $order->products()->sync($products);
     }
 }

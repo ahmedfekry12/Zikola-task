@@ -1,30 +1,25 @@
 <?php
 
-namespace App\Helpers;
-
-class helper
+function uploadImage($image, $path = 'uploads')
 {
-    public static function uploadImage($image , $path = 'uploads')
-    {
-        if ($image) {
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            
-            $image->move(public_path($path), $imageName);
+    if ($image) {
+        $imageName = time() . '.' . $image->getClientOriginalExtension();
 
-            return $path . '/' . $imageName;
-        }
+        $image->move(public_path($path), $imageName);
 
-        return null;
+        return $path . '/' . $imageName;
     }
 
-    public static function ApiResponse(int $code = 200 , $message = null , $data = null)
-    {
-        $response = [
-            'status' => $code,
-            'message' => $message,
-            'data' => $data,
-        ];
+    return null;
+}
 
-        return response()->json($response , $code);
-    }
+function apiResponse(int $code = 200, $message = null, $data = null)
+{
+    $response = [
+        'status' => $code,
+        'message' => $message,
+        'data' => $data,
+    ];
+
+    return response()->json($response, $code);
 }

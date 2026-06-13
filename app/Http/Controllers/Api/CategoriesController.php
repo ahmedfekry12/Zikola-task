@@ -17,13 +17,13 @@ class CategoriesController extends Controller
      */
     public function index()
     {
-        $categories = Category::paginate();
+        $categories = Category::paginate($this->paginate);
 
         if($categories->isEmpty()){
-            return helper::ApiResponse(200, 'No categories found', $categories);
+            return apiResponse(200, 'No categories found', $categories);
         }
 
-        return helper::ApiResponse(200, 'Categories retrieved successfully', $categories);
+        return apiResponse(200, 'Categories retrieved successfully', $categories);
     }
 
     /**
@@ -44,12 +44,12 @@ class CategoriesController extends Controller
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image')) {
-            $data['image'] = helper::uploadImage($request->image , 'uploads/categories');
+            $data['image'] = uploadImage($request->image , 'uploads/categories');
         }
 
         $category = Category::create($data);
 
-        return helper::ApiResponse(201, 'Category created successfully', $category);
+        return apiResponse(201, 'Category created successfully', $category);
     }
 
     /**
@@ -60,10 +60,10 @@ class CategoriesController extends Controller
         $category = Category::findOrFail($id);
 
         if(!$category){
-            return helper::ApiResponse(404, 'Category not found');
+            return apiResponse(404, 'Category not found');
         }
 
-        return helper::ApiResponse(200, 'Category retrieved successfully', $category);
+        return apiResponse(200, 'Category retrieved successfully', $category);
     }
 
     /**
@@ -82,7 +82,7 @@ class CategoriesController extends Controller
         $category = Category::findOrFail($id);
 
         if(!$category){
-            return helper::ApiResponse(404, 'Category not found');
+            return apiResponse(404, 'Category not found');
         }
 
         $data = $request->safe()->except(['image' , 'slug']);
@@ -94,12 +94,12 @@ class CategoriesController extends Controller
                 File::delete(public_path($category->image));
             }
 
-            $data['image'] = helper::uploadImage($request->image , 'uploads/categories');
+            $data['image'] = uploadImage($request->image , 'uploads/categories');
         }
 
         $category->update($data);
 
-        return helper::ApiResponse(200, 'Category updated successfully', $category);
+        return apiResponse(200, 'Category updated successfully', $category);
     }
 
     /**
@@ -110,11 +110,11 @@ class CategoriesController extends Controller
         $category = Category::findOrFail($id);
 
         if(!$category){
-            return helper::ApiResponse(404, 'Category not found');
+            return apiResponse(404, 'Category not found');
         }
 
         $category->delete();
 
-        return helper::ApiResponse(200, 'Category deleted successfully', $category);
+        return apiResponse(200, 'Category deleted successfully', $category);
     }
 }

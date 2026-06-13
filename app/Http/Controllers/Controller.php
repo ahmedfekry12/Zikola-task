@@ -8,6 +8,6 @@ abstract class Controller
     
     public function __construct()
     {
-       $this->paginate=request()->paginate?? 10;
+       $this->paginate = request()->paginate?? 10;
     }
 }

@@ -28,19 +28,19 @@ class OrdersController extends Controller
         $user = Auth::user();
 
         if(!$user) {
-            return helper::ApiResponse(403, 'Unauthorized');
+            return apiResponse(403, 'Unauthorized');
         }
 
         $orders = $user->orders()->with('user:id,name', 'products:id,name,price')
             // ->pending()->withTrashed()
             ->select('id', 'number', 'status', 'user_id', 'delivery', 'tax', 'discount', 'total')
-            ->paginate();
+            ->paginate($this->paginate);
 
         if ($orders->isEmpty()) {
-            return helper::ApiResponse(404, 'No orders found');
+            return apiResponse(404, 'No orders found');
         }
 
-        return helper::ApiResponse(200, 'Orders retrieved successfully', OrderResource::collection($orders));
+        return apiResponse(200, 'Orders retrieved successfully', OrderResource::collection($orders));
     }
 
     /**
@@ -58,7 +58,7 @@ class OrdersController extends Controller
     {
         $order = $this->orderService->createOrder($request);
 
-        return helper::ApiResponse(200, 'Order created successfully', new OrderResource($order->load('user:id,name', 'products:id,name,price')));
+        return apiResponse(200, 'Order created successfully', new OrderResource($order->load('user:id,name', 'products:id,name,price')));
     }
 
     /**
@@ -72,7 +72,7 @@ class OrdersController extends Controller
             ->select('id', 'number', 'status', 'delivery', 'tax', 'discount', 'total')
             ->findOrFail($id);
 
-        return helper::ApiResponse(200, 'Order retrieved successfully', new OrderResource($order));
+        return apiResponse(200, 'Order retrieved successfully', new OrderResource($order));
     }
 
     /**
@@ -90,7 +90,7 @@ class OrdersController extends Controller
     {
         $order = $this->orderService->updateOrder($request, $id);
 
-        return helper::ApiResponse(200, 'Order updated successfully', new OrderResource($order->load('user:id,name', 'products:id,name,price')));
+        return apiResponse(200, 'Order updated successfully', new OrderResource($order->load('user:id,name', 'products:id,name,price')));
     }
 
     /**
@@ -102,12 +102,12 @@ class OrdersController extends Controller
         $order = $user->orders()->findOrFail($id);
 
         if (!$order) {
-            return helper::ApiResponse(404, 'Order not found');
+            return apiResponse(404, 'Order not found');
         }
 
         $order->delete();
 
-        return helper::ApiResponse(200, 'Order deleted successfully' . $order->number);
+        return apiResponse(200, 'Order deleted successfully' . $order->number);
     }
 
     public function trashed()
@@ -116,9 +116,9 @@ class OrdersController extends Controller
         $orders = $user->orders()->onlyTrashed()->get();
 
         if ($orders->isEmpty()) {
-            return helper::ApiResponse(404, 'No trashed orders found');
+            return apiResponse(404, 'No trashed orders found');
         }
 
-        return helper::ApiResponse(200, 'Trashed orders retrieved successfully', OrderResource::collection($orders));
+        return apiResponse(200, 'Trashed orders retrieved successfully', OrderResource::collection($orders));
     }
 }

@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:api')->group(function(){
         Route::controller(ProductsController::class)
         ->group(function () {
-            Route::get('/products', 'index');
+            Route::get('/products/{storeId}', 'index');
             Route::post('/products', 'store');
             Route::put('/products/{id}', 'update');
             Route::delete('/products/{id}', 'destroy');

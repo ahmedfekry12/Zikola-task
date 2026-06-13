@@ -21,12 +21,12 @@ class StoresController extends Controller
     {
         $user = Auth::user();
 
-        $stores = $user->stores()->paginate();
+        $stores = $user->stores()->paginate($this->paginate);
         
         // $stores = Store::active()->paginate();
         // $stores = Store::paginate();
 
-        return helper::ApiResponse(200, 'Stores retrieved successfully', StoreResource::collection($stores));
+        return apiResponse(200, 'Stores retrieved successfully', StoreResource::collection($stores));
     }
 
     /**
@@ -46,12 +46,12 @@ class StoresController extends Controller
         $data = $request->safe()->except(['slug' , 'logo_image' , 'cover_image']);
         $data['user_id'] = $user;
         $data['slug'] = Str::slug($request->name);
-        $data['logo_image'] = helper::uploadImage($request->logo_image , 'uploads/stores');
-        $data['cover_image'] = helper::uploadImage($request->cover_image , 'uploads/stores');
+        $data['logo_image'] = uploadImage($request->logo_image , 'uploads/stores');
+        $data['cover_image'] = uploadImage($request->cover_image , 'uploads/stores');
 
         $store = Store::create($data);
 
-        return helper::ApiResponse(200, 'Store created successfully', new StoreResource($store));
+        return apiResponse(200, 'Store created successfully', new StoreResource($store));
     }
 
     /**
@@ -63,10 +63,10 @@ class StoresController extends Controller
         $store = $user->stores()->findOrFail($id);
 
         if (!$store) {
-            return helper::ApiResponse(404, 'Store not found');
+            return apiResponse(404, 'Store not found');
         }
 
-        return helper::ApiResponse(200, 'Store retrieved successfully', new StoreResource($store));
+        return apiResponse(200, 'Store retrieved successfully', new StoreResource($store));
     }
 
     /**
@@ -86,7 +86,7 @@ class StoresController extends Controller
         $store = $user->stores()->findOrFail($id);
 
         if (!$store) {
-            return helper::ApiResponse(404, 'Store not found');
+            return apiResponse(404, 'Store not found');
         }
 
         $data = $request->safe()->except(['slug' , 'logo_image' , 'cover_image']);
@@ -98,7 +98,7 @@ class StoresController extends Controller
                 File::delete(public_path($store->logo_image));
             }
 
-            $data['logo_image'] = helper::uploadImage($request->logo_image , 'uploads/stores');
+            $data['logo_image'] = uploadImage($request->logo_image , 'uploads/stores');
         }
 
         if($request->hasFile('cover_image')){
@@ -106,12 +106,12 @@ class StoresController extends Controller
                 File::delete(public_path($store->cover_image));
             }
 
-            $data['cover_image'] = helper::uploadImage($request->cover_image , 'uploads/stores');
+            $data['cover_image'] = uploadImage($request->cover_image , 'uploads/stores');
         }
 
         $store->update($data);
 
-        return helper::ApiResponse(200, 'Store updated successfully', new StoreResource($store));
+        return apiResponse(200, 'Store updated successfully', new StoreResource($store));
     }
 
     /**
@@ -123,12 +123,12 @@ class StoresController extends Controller
         $store = $user->stores()->findOrFail($id);
 
         if (!$store) {
-            return helper::ApiResponse(404, 'Store not found');
+            return apiResponse(404, 'Store not found');
         }
         
         $store->delete();
 
-        return helper::ApiResponse(200, 'Store deleted successfully', null);
+        return apiResponse(200, 'Store deleted successfully', null);
         
     }
 }

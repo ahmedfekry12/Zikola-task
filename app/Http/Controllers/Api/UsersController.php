@@ -15,9 +15,9 @@ class UsersController extends Controller
      */
     public function index()
     {
-        $users = User::paginate();
+        $users = User::paginate($this->paginate);
         
-        return helper::ApiResponse(200, 'Users retrieved successfully', $users);
+        return apiResponse(200, 'Users retrieved successfully', $users);
     }
 
     /**
@@ -35,7 +35,7 @@ class UsersController extends Controller
     {
         $user = User::create($request->validated());
 
-        return helper::ApiResponse(201, 'User created successfully', $user);
+        return apiResponse(201, 'User created successfully', $user);
     }
 
     /**
@@ -45,7 +45,7 @@ class UsersController extends Controller
     {
         $user = User::findOrFail($id);
 
-        return helper::ApiResponse(200, 'User retrieved successfully', $user);
+        return apiResponse(200, 'User retrieved successfully', $user);
     }
 
     /**
@@ -64,7 +64,7 @@ class UsersController extends Controller
         $user = User::findOrFail($id);
         $user->update($request->validated());
 
-        return helper::ApiResponse(200, 'User updated successfully', $user);
+        return apiResponse(200, 'User updated successfully', $user);
     }
 
     /**
@@ -75,6 +75,6 @@ class UsersController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return helper::ApiResponse(200, 'User deleted successfully', null);
+        return apiResponse(200, 'User deleted successfully', null);
     }
 }

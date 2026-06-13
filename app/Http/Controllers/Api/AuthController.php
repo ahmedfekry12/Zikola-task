@@ -21,10 +21,10 @@ class AuthController extends Controller
         $token = Auth::guard('api')->login($user);
 
         if (!$token) {
-            return helper::ApiResponse(401 , "Unauthorized");
+            return apiResponse(401 , "Unauthorized");
         }
 
-        return helper::ApiResponse(200 , "created" , [
+        return apiResponse(200 , "created" , [
             'user' => $user,
             'authorization' => [
                 'token' => $token,
@@ -48,12 +48,12 @@ class AuthController extends Controller
         $token = Auth::guard('api')->attempt($credentials);
 
         if (!$token) {
-            return helper::ApiResponse(401 , "Unauthorized");
+            return apiResponse(401 , "Unauthorized");
         }
 
         $user = Auth::user();
 
-        return helper::ApiResponse(200 , "Logged in" , [
+        return apiResponse(200 , "Logged in" , [
             'user' => $user,
             'authorization' => [
                 'token' => $token,
@@ -66,7 +66,7 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        return helper::ApiResponse(200 , "User retrieved" , [
+        return apiResponse(200 , "User retrieved" , [
             'user' => $user
         ]);
     }
