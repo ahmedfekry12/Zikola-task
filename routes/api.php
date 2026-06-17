@@ -19,8 +19,7 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,1');
-    // Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
     Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:3,1');
