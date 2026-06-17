@@ -2,39 +2,47 @@
 
 namespace App\Services;
 
-use App\Helpers\helper;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\User;
 use App\Notifications\NewOrderNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 
 class OrderService
 {
     public function createOrder($request)
     {
-        $user = Auth::user();
+        return DB::transaction(function () use ($request) {
 
-        if (!$user) {
-            return apiResponse(404, "You Should Login First");
-        }
+            try {
+                $user = Auth::user();
 
-        $data = $this->prepareOrderData($request, $user);
+                if (!$user) {
+                    return apiResponse(404, "You Should Login First");
+                }
 
-        [$products, $subtotal] = $this->prepareProducts($request->products);
+                $data = $this->prepareOrderData($request, $user);
 
-        $total = $this->calculateTotal($subtotal, $data['delivery'], $data['tax'], $data['discount']);
+                [$products, $subtotal] = $this->prepareProducts($request->products);
 
-        $data['total'] = $total;
+                $total = $this->calculateTotal($subtotal, $data['delivery'], $data['tax'], $data['discount']);
 
-        $order = $this->storeOrder($data);
+                $data['total'] = $total;
 
-        $this->attachProducts($order , $products);
+                $order = $this->storeOrder($data);
 
-        $this->createNotification($order, $data['store']->user, $user);
+                $this->attachProducts($order, $products);
 
-        return $order;
+                $this->createNotification($order, $data['store']->user, $user);
+
+                return $order;
+
+            } catch (\Throwable $th) {
+
+                return apiResponse(500, "An error occurred while creating the order: " . $th->getMessage());
+            }
+        });
     }
 
     public function updateOrder($request, $id)
@@ -60,14 +68,14 @@ class OrderService
 
         $data['total'] = $total;
 
-        $order = $this->update($data , $id);
+        $order = $this->update($data, $id);
 
-        $this->syncProducts($order , $products);
+        $this->syncProducts($order, $products);
 
         return $order;
     }
 
-    function prepareOrderData($request , $user)
+    function prepareOrderData($request, $user)
     {
         $data = $request->validated();
 
@@ -112,7 +120,7 @@ class OrderService
         return Order::create($data);
     }
 
-    function attachProducts($order , $products)
+    function attachProducts($order, $products)
     {
         $order->products()->attach($products);
     }
@@ -136,8 +144,8 @@ class OrderService
         return $order;
     }
 
-    function syncProducts($order , $products)
+    function syncProducts($order, $products)
     {
-        return $order->products()->sync($products);
+        $order->products()->sync($products);
     }
 }
