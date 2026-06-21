@@ -17,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-#[Fillable(['name', 'email', 'password', 'phone_number', 'is_active' , 'otp', 'otp_expires_at'])]
+#[Fillable(['name', 'email', 'password', 'phone_number', 'role' , 'is_active' , 'otp', 'otp_expires_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements JWTSubject
 {

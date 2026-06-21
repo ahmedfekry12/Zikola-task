@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +29,10 @@ class AppServiceProvider extends ServiceProvider
                 ->response(function () {
                     return apiResponse(429, "Too Many Login Attempts. Please try again later.");
                 });
+        });
+
+        Gate::define('is_admin', function ($user) {
+            return $user->role === 'admin';
         });
     }
 }

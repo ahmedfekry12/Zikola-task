@@ -10,6 +10,7 @@ use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class StoresController extends Controller
@@ -20,11 +21,14 @@ class StoresController extends Controller
     public function index()
     {
         $user = Auth::user();
-
         $stores = $user->stores()->paginate($this->paginate);
-        
         // $stores = Store::active()->paginate();
-        // $stores = Store::paginate();
+
+        if (!Gate::allows('is_admin')) {
+            return apiResponse(403, "You Don't Have Permission To Access This Resource");
+        }
+
+        Gate::authorize('viewAny', Store::class);
 
         return apiResponse(200, 'Stores retrieved successfully', StoreResource::collection($stores));
     }
@@ -43,11 +47,15 @@ class StoresController extends Controller
     public function store(StoreRequest $request)
     {
         $user = Auth::id();
-        $data = $request->safe()->except(['slug' , 'logo_image' , 'cover_image']);
+
+        Gate::authorize('is_admin');
+        Gate::authorize('create', Store::class);
+
+        $data = $request->safe()->except(['slug', 'logo_image', 'cover_image']);
         $data['user_id'] = $user;
         $data['slug'] = Str::slug($request->name);
-        $data['logo_image'] = uploadImage($request->logo_image , 'uploads/stores');
-        $data['cover_image'] = uploadImage($request->cover_image , 'uploads/stores');
+        $data['logo_image'] = uploadImage($request->logo_image, 'uploads/stores');
+        $data['cover_image'] = uploadImage($request->cover_image, 'uploads/stores');
 
         $store = Store::create($data);
 
@@ -62,9 +70,7 @@ class StoresController extends Controller
         $user = Auth::user();
         $store = $user->stores()->findOrFail($id);
 
-        if (!$store) {
-            return apiResponse(404, 'Store not found');
-        }
+        Gate::authorize('view', $store);
 
         return apiResponse(200, 'Store retrieved successfully', new StoreResource($store));
     }
@@ -85,28 +91,26 @@ class StoresController extends Controller
         $user = Auth::user();
         $store = $user->stores()->findOrFail($id);
 
-        if (!$store) {
-            return apiResponse(404, 'Store not found');
-        }
+        Gate::authorize('update', $store);
 
-        $data = $request->safe()->except(['slug' , 'logo_image' , 'cover_image']);
+        $data = $request->safe()->except(['slug', 'logo_image', 'cover_image']);
         $data['user_id'] = $user;
         $data['slug'] = Str::slug($request->name);
 
-        if($request->hasFile('logo_image')){
+        if ($request->hasFile('logo_image')) {
             if (File::exists(public_path($store->logo_image))) {
                 File::delete(public_path($store->logo_image));
             }
 
-            $data['logo_image'] = uploadImage($request->logo_image , 'uploads/stores');
+            $data['logo_image'] = uploadImage($request->logo_image, 'uploads/stores');
         }
 
-        if($request->hasFile('cover_image')){
+        if ($request->hasFile('cover_image')) {
             if (File::exists(public_path($store->cover_image))) {
                 File::delete(public_path($store->cover_image));
             }
 
-            $data['cover_image'] = uploadImage($request->cover_image , 'uploads/stores');
+            $data['cover_image'] = uploadImage($request->cover_image, 'uploads/stores');
         }
 
         $store->update($data);
@@ -122,14 +126,14 @@ class StoresController extends Controller
         $user = Auth::user();
         $store = $user->stores()->findOrFail($id);
 
+        Gate::authorize('delete', $store);
+
         if (!$store) {
             return apiResponse(404, 'Store not found');
         }
-        
+
         $store->delete();
 
         return apiResponse(200, 'Store deleted successfully', null);
-        
     }
 }
-

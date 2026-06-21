@@ -10,6 +10,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class ProductsController extends Controller
@@ -21,13 +22,17 @@ class ProductsController extends Controller
     {
         $user = Auth::user();
 
-            if (!$user) {
-                return apiResponse(404, "You Should Login First");
-            }
+        if (!$user) {
+            return apiResponse(404, "You Should Login First");
+        }
+
+        Gate::authorize('is_admin');
+
+        Gate::authorize('viewAny', Product::class);
 
         // $products = Product::expensive()->paginate();
         $products = Product::where('store_id', $storeId)->paginate($this->paginate);
-        
+
         return apiResponse(200, 'Products retrieved successfully', ProductResource::collection($products));
     }
 
@@ -48,19 +53,21 @@ class ProductsController extends Controller
         $store = $user->stores->first();
 
         if (!$store) {
-            return apiResponse(404 , "You Should Be A Store Owner To Create Product");
+            return apiResponse(404, "You Should Be A Store Owner To Create Product");
         }
-        
-        $data = $request->safe()->except(['image' , 'slug']);
+
+        Gate::authorize('create', Product::class);
+
+        $data = $request->safe()->except(['image', 'slug']);
 
         $data['store_id'] = $store->id;
-        
+
         $data['options'] = $data['options'] ?? [];
 
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image')) {
-            $data['image'] = uploadImage($request->image , 'uploads/products');
+            $data['image'] = uploadImage($request->image, 'uploads/products');
         }
 
         $product = Product::create($data);
@@ -74,6 +81,8 @@ class ProductsController extends Controller
     public function show(string $id)
     {
         $product = Product::findOrFail($id);
+
+        Gate::authorize('view', $product);
 
         return apiResponse(200, 'Product retrieved successfully', new ProductResource($product));
     }
@@ -95,17 +104,19 @@ class ProductsController extends Controller
         $store = $user->stores->first();
 
         if (!$store) {
-            return apiResponse(404 , "You Should Be A Store Owner To Update Product");
+            return apiResponse(404, "You Should Be A Store Owner To Update Product");
         }
 
-        $product = Product::findOrFail($id);
+        $product = $store->products()->findOrFail($id);
 
-        $data = $request->safe()->except(['image' , 'slug']);
+        Gate::authorize('update', $product);
+
+        $data = $request->safe()->except(['image', 'slug']);
 
         $data['store_id'] = $store->id;
 
         $data['options'] = $data['options'] ?? [];
-        
+
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image')) {
@@ -113,14 +124,14 @@ class ProductsController extends Controller
                 File::delete(public_path($product->image));
             }
 
-            $data['image'] = uploadImage($request->image , 'uploads/products');
+            $data['image'] = uploadImage($request->image, 'uploads/products');
         }
 
         if ($product) {
             $product->update($data);
-            return apiResponse(200 , 'Product updated successfully' , new ProductResource($product));
+            return apiResponse(200, 'Product updated successfully', new ProductResource($product));
         } else {
-            return apiResponse(404 , 'Product not found');
+            return apiResponse(404, 'Product not found');
         }
     }
 
@@ -133,22 +144,24 @@ class ProductsController extends Controller
         $store = $user->stores->first();
 
         if (!$store) {
-            return apiResponse(404 , "You Should Be A Store Owner To Delete Product");
+            return apiResponse(404, "You Should Be A Store Owner To Delete Product");
         }
 
         $product = $store->products()->findOrFail($id);
         if (!$product) {
-            return apiResponse(404 , 'Product not found');
+            return apiResponse(404, 'Product not found');
         }
 
+        Gate::authorize('delete', $product);
+
         $product->delete();
-        return apiResponse(200 , 'Product deleted successfully');
+        return apiResponse(200, 'Product deleted successfully');
     }
 
     public function trashed()
     {
         $products = Product::onlyTrashed()->get();
 
-        return apiResponse(200 , 'Trashed products retrieved successfully', ProductResource::collection($products));
+        return apiResponse(200, 'Trashed products retrieved successfully', ProductResource::collection($products));
     }
 }

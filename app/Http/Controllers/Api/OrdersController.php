@@ -14,6 +14,7 @@ use App\Notifications\NewOrderNotification;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class OrdersController extends Controller
 {
@@ -25,6 +26,8 @@ class OrdersController extends Controller
      */
     public function index()
     {
+        Gate::authorize('viewAny', Order::class);
+
         $user = Auth::user();
 
         if(!$user) {
@@ -56,6 +59,8 @@ class OrdersController extends Controller
      */
     public function store(OrderRequest $request)
     {
+        Gate::authorize('create', Order::class);
+
         $order = $this->orderService->createOrder($request);
 
         return apiResponse(200, 'Order created successfully', new OrderResource($order->load('user:id,name', 'products:id,name,price')));
@@ -66,6 +71,8 @@ class OrdersController extends Controller
      */
     public function show(string $id)
     {
+        Gate::authorize('view', Order::findOrfail($id));
+
         $user = Auth::user();
         
         $order = $user->orders()->with('user:id,name', 'products:id,name,price')
@@ -88,6 +95,8 @@ class OrdersController extends Controller
      */
     public function update(OrderRequest $request, string $id)
     {
+        Gate::authorize('update' , Order::findOrfail($id));
+
         $order = $this->orderService->updateOrder($request, $id);
 
         return apiResponse(200, 'Order updated successfully', new OrderResource($order->load('user:id,name', 'products:id,name,price')));

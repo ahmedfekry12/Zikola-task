@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class CategoriesController extends Controller
@@ -17,6 +19,10 @@ class CategoriesController extends Controller
      */
     public function index()
     {
+        if(!Gate::allows('is_admin')){
+            return apiResponse(403, 'Only admin can access categories');
+        }
+
         $categories = Category::paginate($this->paginate);
 
         if($categories->isEmpty()){
@@ -39,6 +45,10 @@ class CategoriesController extends Controller
      */
     public function store(CategoryRequest $request)
     {
+        if(!Gate::allows('is_admin')){
+            return apiResponse(403, 'Unauthorized');
+        }
+        
         $data = $request->safe()->except(['image' , 'slug']);
 
         $data['slug'] = Str::slug($request->name);
@@ -57,6 +67,10 @@ class CategoriesController extends Controller
      */
     public function show(string $id)
     {
+        if(!Gate::allows('is_admin')){
+            return apiResponse(403, 'Unauthorized');
+        }
+        
         $category = Category::findOrFail($id);
 
         if(!$category){
@@ -79,6 +93,10 @@ class CategoriesController extends Controller
      */
     public function update(CategoryRequest $request, string $id)
     {
+        if(!Gate::allows('is_admin')){
+            return apiResponse(403, 'Unauthorized');
+        }
+
         $category = Category::findOrFail($id);
 
         if(!$category){
@@ -107,6 +125,10 @@ class CategoriesController extends Controller
      */
     public function destroy(string $id)
     {
+        if(!Gate::allows('is_admin')){
+            return apiResponse(403, 'Unauthorized');
+        }
+
         $category = Category::findOrFail($id);
 
         if(!$category){
