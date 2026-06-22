@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -27,11 +27,12 @@ class ProductsController extends Controller
         }
 
         Gate::authorize('is_admin');
-
         Gate::authorize('viewAny', Product::class);
 
         // $products = Product::expensive()->paginate();
-        $products = Product::where('store_id', $storeId)->paginate($this->paginate);
+        $products = Cache::remember('products', 3600, function () use ($storeId) {
+            return Product::where('store_id', $storeId)->get();
+        });
 
         return apiResponse(200, 'Products retrieved successfully', ProductResource::collection($products));
     }

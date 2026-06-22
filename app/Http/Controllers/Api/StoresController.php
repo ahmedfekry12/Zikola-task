@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class StoresController extends Controller
 {
@@ -20,15 +21,14 @@ class StoresController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        $stores = $user->stores()->paginate($this->paginate);
-        // $stores = Store::active()->paginate();
-
-        if (!Gate::allows('is_admin')) {
-            return apiResponse(403, "You Don't Have Permission To Access This Resource");
-        }
+        // $user = Auth::user();
+        // $stores = $user->stores()->paginate($this->paginate);
 
         Gate::authorize('viewAny', Store::class);
+
+        $stores = QueryBuilder::for(Store::class)
+            ->allowedFilters('name', 'address')
+            ->paginate($this->paginate);
 
         return apiResponse(200, 'Stores retrieved successfully', StoreResource::collection($stores));
     }

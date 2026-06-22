@@ -2,15 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\helper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use App\Models\Product;
-use App\Models\Store;
-use App\Models\User;
-use App\Notifications\NewOrderNotification;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,19 +21,19 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        Gate::authorize('viewAny', Order::class);
-
         $user = Auth::user();
 
         if(!$user) {
             return apiResponse(403, 'Unauthorized');
         }
 
+        Gate::authorize('viewAny', Order::class);
+
         $orders = $user->orders()->with('user:id,name', 'products:id,name,price')
             // ->pending()->withTrashed()
             ->select('id', 'number', 'status', 'user_id', 'delivery', 'tax', 'discount', 'total')
             ->paginate($this->paginate);
-
+        
         if ($orders->isEmpty()) {
             return apiResponse(404, 'No orders found');
         }
